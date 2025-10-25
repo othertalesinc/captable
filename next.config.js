@@ -1,9 +1,16 @@
-import withBundleAnalyzer from "@next/bundle-analyzer";
 import { withSentryConfig } from "@sentry/nextjs";
 
-const bundleAnalyzer = withBundleAnalyzer({
-  enabled: process.env.ANALYZE === "true",
-});
+const analyzerEnabled = process.env.ANALYZE === "true";
+
+let bundleAnalyzer = (config) => config;
+
+if (analyzerEnabled) {
+  const { default: withBundleAnalyzer } = await import("@next/bundle-analyzer");
+
+  bundleAnalyzer = withBundleAnalyzer({
+    enabled: analyzerEnabled,
+  });
+}
 
 /**
  * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
