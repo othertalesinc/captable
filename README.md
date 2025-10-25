@@ -245,8 +245,36 @@ When contributing to <strong>Captable, Inc.</strong>, whether on GitHub or in ot
 - Frequently used commands
   - `pnpm dev` - Start the development server
   - `pnpm email:dev` - Start the mail server
-  - `pnpm db:migrate` - Run database migrations
-  - `pnpm db:seed` - Seed the database
+- `pnpm db:migrate` - Run database migrations
+- `pnpm db:seed` - Seed the database
+
+<h4 id="google-oauth">Configure Google OAuth</h4>
+
+Enabling “Continue with Google” requires a Google Cloud project with an OAuth client of type **Web application**. The button appears automatically whenever `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are present in your environment (see `src/constants/auth.ts`).
+
+1. Open [Google Cloud Console](https://console.cloud.google.com/), create/select a project, and go to **APIs & Services → OAuth consent screen**. Configure the consent screen (User type = External for most cases) and publish it. The default scopes requested by NextAuth are `openid`, `profile`, and `email`, so no additional scopes are needed unless you plan to request more data.
+2. Go to **APIs & Services → Credentials → Create credentials → OAuth client ID**, choose **Web application**, and give it a descriptive name (e.g., `Captable Local` or `Captable Production`).
+3. Add the following values under **Authorized JavaScript origins** and **Authorized redirect URIs**. Include every environment (local, staging, production) you plan to run:
+
+   ```
+   Authorized JavaScript origins:
+     http://localhost:3000
+     https://your-domain.com
+
+   Authorized redirect URIs:
+     http://localhost:3000/api/auth/callback/google
+     https://your-domain.com/api/auth/callback/google
+   ```
+
+   Replace `https://your-domain.com` with the exact value you set in `NEXTAUTH_URL` / `NEXT_PUBLIC_BASE_URL`. For additional environments, add their origins plus the matching `/api/auth/callback/google` path.
+4. Copy the generated **Client ID** and **Client secret** into your `.env` (or deployment secrets):
+
+   ```bash
+   GOOGLE_CLIENT_ID="xxxxxxxx.apps.googleusercontent.com"
+   GOOGLE_CLIENT_SECRET="xxxxxxxxxxxx"
+   ```
+
+5. Restart the app (or redeploy) so NextAuth picks up the new variables.
 
 <h4 id="changes">Implement your changes</h4>
 

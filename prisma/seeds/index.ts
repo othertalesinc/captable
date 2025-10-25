@@ -13,7 +13,7 @@ if (process.env.NODE_ENV === "production") {
 }
 
 const parseBooleanEnv = (value?: string | null, defaultValue = false) =>
-  value === undefined
+  value == null
     ? defaultValue
     : ["1", "true", "yes"].includes(value.toLowerCase());
 
