@@ -2,6 +2,10 @@ import { withSentryConfig } from "@sentry/nextjs";
 
 const analyzerEnabled = process.env.ANALYZE === "true";
 
+/**
+ * Default identity function so we can optionally wrap the config with the bundle analyzer.
+ * @type {(config: import("next").NextConfig) => import("next").NextConfig}
+ */
 let bundleAnalyzer = (config) => config;
 
 if (analyzerEnabled) {
