@@ -1,3 +1,6 @@
+import { existsSync } from "node:fs";
+import { isAbsolute, resolve } from "node:path";
+
 import { PrismaClient } from "@prisma/client";
 
 import { env } from "@/env";
@@ -8,6 +11,18 @@ declare global {
   namespace PrismaJson {
     type TemplateFieldMeta = TTemplateFieldMetaType;
   }
+}
+
+const defaultCaPath = resolve(process.cwd(), "prisma/ca.crt");
+const configuredCaPath = process.env.PGSSLROOTCERT ?? defaultCaPath;
+const normalizedCaPath = isAbsolute(configuredCaPath)
+  ? configuredCaPath
+  : resolve(process.cwd(), configuredCaPath);
+
+if (existsSync(normalizedCaPath)) {
+  // Ensure Node + Prisma trust the bundled Postgres CA to avoid TLS warnings.
+  process.env.PGSSLROOTCERT = normalizedCaPath;
+  process.env.NODE_EXTRA_CA_CERTS ??= normalizedCaPath;
 }
 
 function getExtendedClient() {

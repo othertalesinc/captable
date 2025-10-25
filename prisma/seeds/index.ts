@@ -12,30 +12,57 @@ if (process.env.NODE_ENV === "production") {
   process.exit(0);
 }
 
-const seed = async () => {
+const parseBooleanEnv = (value?: string | null, defaultValue = false) =>
+  value === undefined
+    ? defaultValue
+    : ["1", "true", "yes"].includes(value.toLowerCase());
+
+const shouldAutoConfirm =
+  parseBooleanEnv(process.env.SEED_SKIP_CONFIRM, true) ||
+  parseBooleanEnv(process.env.SEED_FORCE) ||
+  parseBooleanEnv(process.env.CI);
+
+const confirmSeeding = async () => {
+  if (shouldAutoConfirm) {
+    console.log(
+      "⚠️  Auto-confirm enabled via environment variable, skipping prompt."
+        .yellow,
+    );
+    return true;
+  }
+
+  if (!process.stdin.isTTY || !process.stdout.isTTY) {
+    throw new Error(
+      "Interactive confirmation is required. Re-run with SEED_SKIP_CONFIRM=true (default) to proceed without prompts.",
+    );
+  }
+
   const inquiry = await inquirer.prompt({
     type: "confirm",
     name: "answer",
     message: "Are you sure you want to NUKE 🚀 and re-seed the database?",
   } as QuestionCollection);
 
-  // const answer = true;
-  const answer = inquiry.answer as boolean;
-
-  if (answer) {
-    await nuke();
-
-    console.log("Seeding database".underline.cyan);
-    return db.$transaction(async () => {
-      await seedCompanies();
-      await seedTeam();
-    });
-  } else {
-    throw new Error("Seeding aborted");
-  }
+  return inquiry.answer as boolean;
 };
 
-const nuke = async () => {
+const seed = async () => {
+  const answer = await confirmSeeding();
+
+  if (!answer) {
+    throw new Error("Seeding aborted");
+  }
+
+  await nuke();
+
+  console.log("Seeding database".underline.cyan);
+  return db.$transaction(async () => {
+    await seedCompanies();
+    await seedTeam();
+  });
+};
+
+const nuke = () => {
   console.log("🚀 Nuking database records".yellow);
   return db.$transaction(async (db) => {
     await db.user.deleteMany();
@@ -54,12 +81,12 @@ await seed()
   .then(async () => {
     console.log("✅ Database seeding completed".green);
     console.log(
-      `💌 We have created four admin accounts for you. Please login with one of these emails:\n`
+      "💌 We have created four admin accounts for you. Please login with one of these emails:\n"
         .cyan,
-      `ceo@example.com\n`.underline.yellow,
-      `cto@example.com\n`.underline.yellow,
-      `cfo@example.com\n`.underline.yellow,
-      `lawyer@example.com\n`.underline.yellow,
+      "ceo@example.com\n".underline.yellow,
+      "cto@example.com\n".underline.yellow,
+      "cfo@example.com\n".underline.yellow,
+      "lawyer@example.com\n".underline.yellow,
     );
     await db.$disconnect();
   })

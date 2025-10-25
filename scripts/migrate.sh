@@ -6,17 +6,14 @@ log() {
   printf '%s\n' "$1"
 }
 
-run_with_auto_confirm() {
-  cmd="$1"
-  # `script` ensures the command thinks it has a TTY while `yes` feeds confirmations.
-  yes | script -q -c "$cmd" /dev/null
-}
+# Ensure seeding never blocks waiting for confirmation inside containers.
+export SEED_SKIP_CONFIRM="${SEED_SKIP_CONFIRM:-true}"
 
 log "➡  Running database migrations"
-run_with_auto_confirm "pnpm db:migrate"
+pnpm db:migrate
 
 log "➡  Seeding database"
-run_with_auto_confirm "pnpm db:seed"
+pnpm db:seed
 
 log "🚀 Starting application server"
 exec env HOSTNAME="0.0.0.0" PORT="${PORT:-3000}" node server.js

@@ -13,7 +13,7 @@
     "dx:seed": "docker compose exec app pnpm db:seed",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
-    "db:migrate": "prisma migrate dev",
+    "db:migrate": "prisma migrate deploy && prisma generate",
     "db:generate": "prisma generate",
     "db:seed": "NODE_ENV='test' tsx prisma/seeds/index.ts",
     "dev": "next dev",
