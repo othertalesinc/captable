@@ -17,6 +17,8 @@ ENV HUSKY 0
 # Install dependencies
 COPY package.json pnpm-lock.yaml* ./
 RUN corepack enable pnpm && pnpm i --frozen-lockfile
+# Refresh Browserslist definitions so build output matches latest targets.
+RUN npx update-browserslist-db@latest
 
 ##### BUILDER
 
